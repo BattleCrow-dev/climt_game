@@ -15,7 +15,6 @@
   function render(product, options) {
     options = options || {};
     const mode = options.mode || 'detail';
-    const promo = options.promo || null;
     const pendingReward = options.pendingReward || false;
     const onBack = options.onBack || (() => window.CLIMT_CABINET.render());
 
@@ -23,6 +22,18 @@
     const marketplace = State.getMarketplace();
     const isReward = mode === 'reward';
     const needPicker = isReward && !marketplace && pendingReward;
+
+    let promo = options.promo || null;
+    const alreadyCompleted = !!State.get().completed[product.day];
+
+    // Если это reward-экран, маркетплейс уже выбран, но промокод ещё не сгенерирован —
+    // генерируем его и помечаем день как пройденный
+    if (isReward && !needPicker && marketplace && !alreadyCompleted) {
+      const code = generatePromoCode(product, marketplace);
+      const expiresAt = Date.now() + CFG.promoDurationDays * 24 * 60 * 60 * 1000;
+      State.completeDay(product.day, code, expiresAt);
+      promo = code;
+    }
 
     const promoActive = promo && State.isPromoActive(product.day);
     const promoExpired = promo && !State.isPromoActive(product.day);
@@ -162,6 +173,8 @@
         ` : '')}
       </div>
     `;
+
+    // ---- Обработчики ----
 
     if (needPicker) {
       el.querySelectorAll('.pv-mp-btn').forEach(btn => {

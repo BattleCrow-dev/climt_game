@@ -1,7 +1,7 @@
 /**
  * Match-3 с фотографиями товаров Climt.
  * Свайп и тап-тап. Свойства x/y/scale/alpha анимируются независимо.
- * Счётчик попыток идёт вверх, лимита нет.
+ * N, tileTypes и палитра зависят от продукта дня.
  */
 (function () {
   const UI = window.CLIMT_UI;
@@ -9,10 +9,7 @@
   const CFG = window.CLIMT_CONFIG;
   const Products = window.CLIMT_PRODUCTS;
 
-  const N = 6;
-  const TILE_TYPES = 5;
   const TARGET_TYPE = 0;
-
   const SWIPE_THRESHOLD = 0.28;
 
   const ANIM = {
@@ -29,12 +26,38 @@
     clearOutEnd: 0.15,
   };
 
-  // Палитра подложек для не-целевых типов (тип 0 – целевой)
-  const TILE_TINTS = {
-    1: { bg1: '#F0F4F9', bg2: '#E3EBF4', stroke: '#8AA8C8' },
-    2: { bg1: '#F0F6F0', bg2: '#E2EFE2', stroke: '#8FB88F' },
-    3: { bg1: '#F9F0F4', bg2: '#F2E2EA', stroke: '#D8A8C0' },
-    4: { bg1: '#F3F0F8', bg2: '#E8E2F2', stroke: '#A898C8' },
+  // Палитры подложек. Индекс 0 – целевой продукт (золотой).
+  const PALETTES = {
+    warm: [
+      { bg1: '#FCF9F3', bg2: '#F5EEDF', stroke: '#B8924A' },     // target – золотой
+      { bg1: '#FBF0F0', bg2: '#F0DCDC', stroke: '#D0A0A0' },
+      { bg1: '#F7F2E8', bg2: '#EDE3D0', stroke: '#B0A080' },
+      { bg1: '#F2F0E8', bg2: '#E5E0D0', stroke: '#A8A080' },
+      { bg1: '#F5EFE8', bg2: '#E8DCCC', stroke: '#B09880' },
+    ],
+    cool: [
+      { bg1: '#FCF9F3', bg2: '#F5EEDF', stroke: '#B8924A' },     // target – золотой
+      { bg1: '#F0F4F9', bg2: '#E3EBF4', stroke: '#8AA8C8' },
+      { bg1: '#F0F6F0', bg2: '#E2EFE2', stroke: '#8FB88F' },
+      { bg1: '#F3F0F8', bg2: '#E8E2F2', stroke: '#A898C8' },
+      { bg1: '#F0F5F5', bg2: '#E0ECEC', stroke: '#80B0B0' },
+    ],
+    saturated: [
+      { bg1: '#FCF9F3', bg2: '#F5EEDF', stroke: '#B8924A' },     // target – золотой
+      { bg1: '#F9F0F4', bg2: '#F0DCE5', stroke: '#D088A8' },
+      { bg1: '#F2F7ED', bg2: '#E0EDD0', stroke: '#90B060' },
+      { bg1: '#F9F0E5', bg2: '#F0E0C8', stroke: '#D09A50' },
+      { bg1: '#EDF2F8', bg2: '#D8E4F0', stroke: '#7098C0' },
+      { bg1: '#F5ECF8', bg2: '#E8DAF0', stroke: '#A878C0' },
+    ],
+    deep: [
+      { bg1: '#FCF9F3', bg2: '#F5EEDF', stroke: '#B8924A' },     // target – золотой
+      { bg1: '#F2E8E8', bg2: '#E0CECE', stroke: '#A87878' },
+      { bg1: '#E8EEE8', bg2: '#D0DCD0', stroke: '#7A9A7A' },
+      { bg1: '#EAE5F0', bg2: '#D5CCE0', stroke: '#7868A8' },
+      { bg1: '#F0EAE0', bg2: '#E0D5C0', stroke: '#A89060' },
+      { bg1: '#E8ECEF', bg2: '#D0D8E0', stroke: '#687888' },
+    ],
   };
 
   const imageCache = {};
@@ -49,12 +72,12 @@
     });
   }
 
-  function pickOtherImages(product) {
+  function pickOtherImages(product, count) {
     const total = Products.length;
     const startIdx = product.day - 1;
     const others = [];
-    const step = Math.floor(total / 5);
-    for (let i = 1; i <= total * 2 && others.length < 4; i++) {
+    const step = Math.max(1, Math.floor(total / (count + 1)));
+    for (let i = 1; i <= total * 2 && others.length < count; i++) {
       const idx = (startIdx + i * step) % total;
       const p = Products[idx];
       if (p.day === product.day) continue;
@@ -96,13 +119,23 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = true;
 
-    const cell = size / N;
+    // Параметры уровня из продукта
+    const gridN = (product.m3 && product.m3.N) || 6;
+    const paletteName = (product.m3 && product.m3.palette) || 'warm';
+    const palette = PALETTES[paletteName] || PALETTES.warm;
+    const tileTypes = palette.length;
 
-    const others = pickOtherImages(product);
+    const cell = size / gridN;
+
+    const otherCount = tileTypes - 1;
+    const others = pickOtherImages(product, otherCount);
     const paths = [product.image].concat(others.map(o => o.image));
 
     m3 = {
-      canvas, ctx, size, cell, N,
+      canvas, ctx, size, cell,
+      N: gridN,
+      tileTypes,
+      palette,
       grid: [],
       target: product.m3.target,
       moves: 0,
@@ -113,7 +146,7 @@
       busy: false,
       product,
       paths,
-      images: [null, null, null, null, null],
+      images: new Array(tileTypes).fill(null),
       floatLayer: document.getElementById('m3Floats'),
       pointer: null,
     };
@@ -152,13 +185,14 @@
   }
 
   function fillGrid() {
+    const { N, tileTypes } = m3;
     const grid = [];
     for (let r = 0; r < N; r++) {
       const row = [];
       for (let c = 0; c < N; c++) {
         let type, guard = 0;
         do {
-          type = Math.floor(Math.random() * TILE_TYPES);
+          type = Math.floor(Math.random() * tileTypes);
           guard++;
         } while (guard < 30 && (
           (c >= 2 && row[c-1].type === type && row[c-2].type === type) ||
@@ -194,7 +228,7 @@
     const cellFromCoords = (x, y) => {
       const c = Math.floor(x / m3.cell);
       const r = Math.floor(y / m3.cell);
-      if (r < 0 || r >= N || c < 0 || c >= N) return null;
+      if (r < 0 || r >= m3.N || c < 0 || c >= m3.N) return null;
       return { r, c };
     };
 
@@ -239,7 +273,7 @@
       const c0 = m3.pointer.startC;
       const r1 = r0 + dR;
       const c1 = c0 + dC;
-      if (r1 < 0 || r1 >= N || c1 < 0 || c1 >= N) {
+      if (r1 < 0 || r1 >= m3.N || c1 < 0 || c1 >= m3.N) {
         m3.pointer = null;
         return;
       }
@@ -289,7 +323,7 @@
   }
 
   // ============================================================
-  // TWEEN SYSTEM — независимые каналы свойств
+  // TWEEN
   // ============================================================
   function tween(tile, props, duration) {
     if (!tile) return;
@@ -303,11 +337,7 @@
         delete tile.anim[key];
         continue;
       }
-      tile.anim[key] = {
-        from, to,
-        start: now,
-        duration,
-      };
+      tile.anim[key] = { from, to, start: now, duration };
     }
   }
 
@@ -354,7 +384,6 @@
     setTimeout(() => {
       if (!m3) return;
       if (findMatches().length === 0) {
-        // Откат — плитки возвращаются на исходные места
         swapInGrid(a, b);
         tween(a, { x: a.c, y: a.r, scale: 1 }, ANIM.swapBack);
         tween(b, { x: b.c, y: b.r, scale: 1 }, ANIM.swapBack);
@@ -366,7 +395,6 @@
         }, ANIM.swapBack + 20);
         return;
       }
-      // Валидный обмен — увеличиваем счётчик попыток
       m3.moves++;
       updateHeader();
       resolveMatches();
@@ -375,11 +403,7 @@
 
   function snapTile(t) {
     if (!t) return;
-    t.x = t.c;
-    t.y = t.r;
-    t.scale = 1;
-    t.alpha = 1;
-    t.anim = null;
+    t.x = t.c; t.y = t.r; t.scale = 1; t.alpha = 1; t.anim = null;
   }
 
   function swapInGrid(a, b) {
@@ -397,6 +421,7 @@
   function loop() {
     if (!m3) return;
     const now = performance.now();
+    const N = m3.N;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
       updateTile(m3.grid[r][c], now);
     }
@@ -409,7 +434,7 @@
   // DRAW
   // ============================================================
   function draw() {
-    const { ctx, size, cell, grid } = m3;
+    const { ctx, size, cell, grid, N } = m3;
     ctx.clearRect(0, 0, size, size);
 
     ctx.save();
@@ -453,6 +478,7 @@
     const pad = cell * 0.055;
     const sz = cell - pad * 2;
     const isTarget = tile.type === TARGET_TYPE;
+    const tint = m3.palette[tile.type] || m3.palette[0];
 
     const cx = tile.x * cell + cell / 2;
     const cy = tile.y * cell + cell / 2;
@@ -472,35 +498,23 @@
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
 
+    const grad = ctx.createLinearGradient(x, y, x + cell, y + cell);
+    grad.addColorStop(0, tint.bg1);
+    grad.addColorStop(1, tint.bg2);
+    ctx.fillStyle = grad;
+    roundRect(ctx, x + pad, y + pad, sz, sz, radius);
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
     if (isTarget) {
-      const grad = ctx.createLinearGradient(x, y, x + cell, y + cell);
-      grad.addColorStop(0, '#FCF9F3');
-      grad.addColorStop(1, '#F5EEDF');
-      ctx.fillStyle = grad;
-      roundRect(ctx, x + pad, y + pad, sz, sz, radius);
-      ctx.fill();
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-
-      ctx.strokeStyle = '#B8924A';
+      ctx.strokeStyle = tint.stroke;
       ctx.lineWidth = 2;
       roundRect(ctx, x + pad + 1, y + pad + 1, sz - 2, sz - 2, radius);
       ctx.stroke();
     } else {
-      const tint = TILE_TINTS[tile.type] || { bg1: '#FFFFFF', bg2: '#F5F5F5', stroke: '#E5E5E1' };
-      const grad = ctx.createLinearGradient(x, y, x + cell, y + cell);
-      grad.addColorStop(0, tint.bg1);
-      grad.addColorStop(1, tint.bg2);
-      ctx.fillStyle = grad;
-      roundRect(ctx, x + pad, y + pad, sz, sz, radius);
-      ctx.fill();
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-
       ctx.globalAlpha = tile.alpha * 0.6;
       ctx.strokeStyle = tint.stroke;
       ctx.lineWidth = 1;
@@ -543,7 +557,7 @@
   // MATCH LOGIC
   // ============================================================
   function findMatches() {
-    const g = m3.grid, out = new Set();
+    const g = m3.grid, N = m3.N, out = new Set();
     for (let r = 0; r < N; r++) {
       let run = 1;
       for (let c = 1; c <= N; c++) {
@@ -637,9 +651,7 @@
 
     setTimeout(() => {
       if (!m3) return;
-      matches.forEach(({ r, c }) => {
-        m3.grid[r][c] = null;
-      });
+      matches.forEach(({ r, c }) => { m3.grid[r][c] = null; });
       applyGravity();
       setTimeout(() => resolveMatches(), ANIM.fall + 40);
     }, ANIM.clearUp + ANIM.clearOut);
@@ -656,7 +668,7 @@
   }
 
   function applyGravity() {
-    const g = m3.grid;
+    const g = m3.grid, N = m3.N, tileTypes = m3.tileTypes;
     for (let c = 0; c < N; c++) {
       let write = N - 1;
       for (let r = N - 1; r >= 0; r--) {
@@ -672,7 +684,7 @@
         }
       }
       for (let r = write; r >= 0; r--) {
-        const type = Math.floor(Math.random() * TILE_TYPES);
+        const type = Math.floor(Math.random() * tileTypes);
         const t = makeTile(type, r, c);
         t.x = c;
         t.y = r - (write + 1);
@@ -696,7 +708,6 @@
     if (m3.score >= m3.target) {
       setTimeout(finish, 400);
     }
-    // Ограничения по ходам нет — игра идёт до победы
   }
 
   function finish() {
@@ -705,16 +716,19 @@
     cancelAnimationFrame(rafId);
     m3 = null;
 
+    const marketplace = State.getMarketplace();
+    const pendingReward = !marketplace;
+
     UI.transitionTo('product', {
       word: '✓',
       label: 'Собрано',
-      sub: 'Открываем твой промокод',
+      sub: marketplace ? 'Открываем твой промокод' : 'Выбери маркетплейс',
       showOptions: { onBack: () => window.CLIMT_DAYS.render() },
     });
     setTimeout(() => {
       window.CLIMT_PRODUCT_VIEW.render(product, {
         mode: 'reward',
-        pendingReward: true,
+        pendingReward: pendingReward,
         onBack: () => window.CLIMT_DAYS.render(),
       });
     }, 700);

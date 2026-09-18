@@ -70,14 +70,13 @@
   }
 
   /**
-   * День, который сейчас можно играть.
-   * Это первый непройденный день в окне [currentDay - catchUpWindow, currentDay].
-   * Если в этом окне всё пройдено, возвращает null.
+   * Ближайший к сегодня непройденный день в окне [cur − catchUpWindow, cur].
+   * Идём сверху вниз: сегодня → вчера → позавчера → 3 дня назад.
    */
   function getPlayableDay() {
     const cur = getCurrentEventDay();
     const minDay = Math.max(1, cur - CFG.catchUpWindowDays);
-    for (let d = minDay; d <= cur; d++) {
+    for (let d = cur; d >= minDay; d--) {
       if (!state.completed[d]) return d;
     }
     return null;

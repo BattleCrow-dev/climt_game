@@ -5,6 +5,16 @@
   const Products = window.CLIMT_PRODUCTS;
   let tick = null;
 
+  function playLabelFor(playable) {
+    if (playable === null || playable === undefined) return null;
+    const cur = State.getCurrentEventDay();
+    const daysAgo = cur - playable;
+    if (daysAgo === 0) return 'Играть за сегодня';
+    if (daysAgo === 1) return 'Догнать вчера';
+    if (daysAgo === 2) return 'Догнать позавчера';
+    return 'Догнать ' + daysAgo + ' дня назад';
+  }
+
   function render() {
     const cur = State.getCurrentEventDay();
     const product = Products[cur - 1];
@@ -19,10 +29,10 @@
 
     const icon = document.getElementById('cdIcon');
     if (product) {
+      icon.style.visibility = '';
       icon.src = product.image;
       icon.alt = product.name;
-      icon.onerror = () => { icon.style.display = 'none'; };
-      icon.onload = () => { icon.style.display = ''; };
+      icon.onerror = () => { icon.style.visibility = 'hidden'; };
     }
 
     document.getElementById('cdProgress').style.width =
@@ -32,12 +42,13 @@
 
     const btn = document.getElementById('startBtn');
     const playable = State.getPlayableDay();
+    const label = playLabelFor(playable);
 
     if (State.isEventComplete()) {
       btn.textContent = 'Открыть косметичку';
       btn.onclick = () => window.CLIMT_CABINET.render();
-    } else if (playable !== null && playable !== undefined) {
-      btn.textContent = `Продолжить день ${playable}`;
+    } else if (label) {
+      btn.textContent = label;
       btn.onclick = () => window.CLIMT_DAYS.startDay(playable);
     } else {
       btn.textContent = 'Все доступные дни пройдены';

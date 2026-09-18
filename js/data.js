@@ -21,10 +21,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Wildberries', art:'1261279449', url:'https://wildberries.ru' },
       { name:'Золотое Яблоко', art:'19000256120', url:'https://goldapple.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:6, N:6, palette:'warm' },
     matchUnits:['тюбик','тюбика','тюбиков'],
     matchOf:'тинта',
-    hint:'Один флакон – три зоны. С него начался Climt.'
+    hint:'Один флакон – три зоны: губы, щёки, веки. С него начался Climt.'
   },
   {
     day:2, word:'ТУШЬ', image:'images/products/mascara.png',
@@ -48,10 +48,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Wildberries', art:'1261279450', url:'https://wildberries.ru' },
       { name:'Золотое Яблоко', art:'19000256437', url:'https://goldapple.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:7, N:6, palette:'warm' },
     matchUnits:['тюбик','тюбика','тюбиков'],
     matchOf:'туши',
-    hint:'Не боится ни жары, ни влажности. Снимается тёплой водой.'
+    hint:'Термостойкая формула: не течёт в жару, не осыпается в мороз. Снимается тёплой водой.'
   },
   {
     day:3, word:'БЛЕСК', image:'images/products/gloss.png',
@@ -74,10 +74,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591226', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279451', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:7, N:6, palette:'warm' },
     matchUnits:['флакон','флакона','флаконов'],
     matchOf:'блеска',
-    hint:'Назван в честь героинь культового сериала.'
+    hint:'Линейка оттенков названа в честь героинь культового сериала. С маслом ши.'
   },
   {
     day:4, word:'ГЕЛЬ', image:'images/products/brow-gel.png',
@@ -100,10 +100,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591227', url:'https://ozon.ru' },
       { name:'Артикул производителя', art:'99000016477', url:'#' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:8, N:6, palette:'warm' },
     matchUnits:['флакон','флакона','флаконов'],
     matchOf:'геля для бровей',
-    hint:'Укладывает волоски без эффекта приклеенности.'
+    hint:'Прозрачная формула фиксирует брови на 10 часов. Не склеивает и не оставляет следов.'
   },
   {
     day:5, word:'КОНСИЛЕР', image:'images/products/concealer.png',
@@ -126,10 +126,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591228', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279452', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:9, N:6, palette:'cool' },
     matchUnits:['тюбик','тюбика','тюбиков'],
     matchOf:'консилера',
-    hint:'Преломляет свет, а не маскирует.'
+    hint:'Светоотражающие частицы преломляют свет. Скрывает следы усталости без плотного слоя.'
   },
   {
     day:6, word:'ПУДРА', image:'images/products/powder.png',
@@ -152,10 +152,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591229', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279453', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:9, N:6, palette:'cool' },
     matchUnits:['баночка','баночки','баночек'],
     matchOf:'пудры',
-    hint:'Финишный штрих. Не сушит благодаря рисовому крахмалу.'
+    hint:'Мягкий мат без пересушивания. Рисовый крахмал вместо талька.'
   },
   {
     day:7, word:'БАЛЬЗАМ', image:'images/products/lip-balm.png',
@@ -178,10 +178,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591230', url:'https://ozon.ru' },
       { name:'Артикул производителя', art:'99000091101', url:'#' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:10, N:6, palette:'cool' },
     matchUnits:['баночка','баночки','баночек'],
     matchOf:'бальзама',
-    hint:'Можно наносить как ночную маску.'
+    hint:'Восстанавливает губы за одну ночь. Можно как маску перед сном.'
   },
   {
     day:8, word:'СЫВОРОТКА', image:'images/products/serum.png',
@@ -204,10 +204,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591231', url:'https://ozon.ru' },
       { name:'Артикул производителя', art:'99000091153', url:'#' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:10, N:6, palette:'cool' },
     matchUnits:['флакон','флакона','флаконов'],
     matchOf:'сыворотки',
-    hint:'Курс на четыре недели. С пептидами и биотином.'
+    hint:'Стимулирует рост ресниц и бровей за 4 недели. Без гормонов.'
   },
   {
     day:9, word:'ХАЙЛАЙТЕР', image:'images/products/highlighter.png',
@@ -230,10 +230,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591232', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279454', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:10, N:7, palette:'saturated' },
     matchUnits:['баночка','баночки','баночек'],
     matchOf:'хайлайтера',
-    hint:'Имитирует утренний свет на коже.'
+    hint:'Кремовая текстура для естественного сияния. Растушёвывается пальцами без блёсток.'
   },
   {
     day:10, word:'РУМЯНА', image:'images/products/blush.png',
@@ -256,10 +256,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591233', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279455', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:11, N:7, palette:'saturated' },
     matchUnits:['флакон','флакона','флаконов'],
     matchOf:'румян',
-    hint:'Эффект румянца изнутри, а не поверх макияжа.'
+    hint:'Жидкая текстура даёт эффект румянца изнутри. Сливается с кожей лучше пудры.'
   },
   {
     day:11, word:'БАЗА', image:'images/products/primer.png',
@@ -282,10 +282,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591234', url:'https://ozon.ru' },
       { name:'Артикул производителя', art:'99000091202', url:'#' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:11, N:7, palette:'saturated' },
     matchUnits:['тюбик','тюбика','тюбиков'],
     matchOf:'базы',
-    hint:'Первый слой. Можно носить самостоятельно.'
+    hint:'Выравнивает тон и продлевает стойкость макияжа. Можно носить вместо тона.'
   },
   {
     day:12, word:'КАРАНДАШ', image:'images/products/lip-pencil.png',
@@ -308,10 +308,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591235', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279456', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:12, N:7, palette:'deep' },
     matchUnits:['карандаш','карандаша','карандашей'],
     matchOf:'для губ',
-    hint:'Им можно полностью заполнить губы.'
+    hint:'Точный контур без растягивания. Работает как матовая помада, если заполнить всю губу.'
   },
   {
     day:13, word:'ТЕНИ', image:'images/products/eyeshadow.png',
@@ -334,10 +334,10 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591236', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279457', url:'https://wildberries.ru' }
     ],
-    m3:{ target:10, moves:18 },
+    m3:{ target:12, N:7, palette:'deep' },
     matchUnits:['тюбик','тюбика','тюбиков'],
     matchOf:'теней',
-    hint:'Застывают за 20 секунд. Держатся до демакияжа.'
+    hint:'Стойкая формула держится 12 часов. Не скатывается в складку, можно наслаивать.'
   },
   {
     day:14, word:'КАРАНДАШ', image:'images/products/eye-pencil.png',
@@ -360,9 +360,9 @@ window.CLIMT_PRODUCTS = [
       { name:'Ozon', art:'1172591237', url:'https://ozon.ru' },
       { name:'Wildberries', art:'1261279458', url:'https://wildberries.ru' }
     ],
-    m3:{ target:12, moves:20 },
+    m3:{ target:14, N:7, palette:'deep' },
     matchUnits:['карандаш','карандаша','карандашей'],
     matchOf:'для глаз',
-    hint:'Финальный штрих образа Climt.'
+    hint:'Мягкий стержень для межресничного контура. Делает взгляд глубже без тяжёлых стрелок.'
   }
 ];
