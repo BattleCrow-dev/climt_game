@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>14 дней с Climt</title>
-<link rel="icon" type="image/png" href="images/favicon.ico">
+<title>Climt · 14 дней красоты</title>
+<link rel="icon" type="image/x-icon" href="images/favicon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
 <link rel="apple-touch-icon" href="images/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,16 +17,32 @@
 
   <header class="topbar">
     <button class="back" id="backBtn" aria-label="Назад">←</button>
-    <div class="brand">CLIMT<span>·</span>PLAY</div>
+    <a class="brand-logo" href="#" id="brandLogo" aria-label="Climt">
+      <img src="images/logo.png" alt="Climt" onerror="this.parentElement.classList.add('fallback')">
+      <span class="brand-text">CLIMT<span>·</span>PLAY</span>
+    </a>
     <button class="cabinet-btn" id="cabBtn">Косметичка</button>
   </header>
 
+  <!-- ONBOARDING -->
+  <section class="screen" id="scr-onboard">
+    <div class="scr-body ob-body">
+      <div class="ob-slide" id="obSlide"></div>
+      <div class="ob-dots" id="obDots"></div>
+    </div>
+    <div class="scr-foot">
+      <button class="btn accent" id="obNext">Дальше</button>
+      <button class="btn ghost" id="obSkip">Пропустить</button>
+    </div>
+  </section>
+
+  <!-- HOME -->
   <section class="screen active" id="scr-home">
     <div class="scr-body scr-body-home">
       <div class="hero">
         <div class="hero-eyebrow" id="heroEyebrow">Событие началось</div>
         <h1 class="hero-title">14 дней<br><em>красоты без усилий</em></h1>
-        <p class="hero-sub">Отгадывай категории, собирай тройки и получай промокоды на покупки на climtcosmetics.com</p>
+        <p class="hero-sub">Отгадывай категории, собирай продукты Climt и наполняй косметичку промокодами на покупки на climtcosmetics.com</p>
       </div>
 
       <div class="countdown-card">
@@ -49,81 +66,78 @@
     </div>
   </section>
 
+  <!-- DAYS -->
   <section class="screen" id="scr-days">
     <div class="scr-head">
       <div class="section-eyebrow">Событие</div>
-      <div class="section-title">Карта 14 дней</div>
+      <div class="section-title">Карта дней</div>
     </div>
-
     <div class="scr-body">
       <div class="days" id="daysGrid"></div>
     </div>
-
     <div class="scr-foot">
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
       <div class="progress-label" id="progressLabel">0 из 14 пройдено</div>
     </div>
   </section>
 
+  <!-- HANGMAN -->
   <section class="screen" id="scr-hang">
     <div class="scr-head">
       <div class="section-eyebrow" id="hangEyebrow">День 1</div>
       <div class="section-title">Отгадай категорию</div>
     </div>
-
     <div class="scr-body scr-body-hang">
       <div class="vessel" id="vessel"></div>
       <div class="hint-text" id="hangHint"></div>
       <div class="hang-word" id="hangWord"></div>
     </div>
-
     <div class="scr-foot">
       <div class="keyboard" id="keyboard"></div>
     </div>
   </section>
 
-    <section class="screen" id="scr-m3">
+  <!-- MATCH-3 -->
+  <section class="screen" id="scr-m3">
     <div class="scr-head m3-head">
       <div class="m3-stat">
         <div class="m3-lbl">Собрано</div>
         <div class="m3-val"><span id="m3Score">0</span> / <span id="m3Target">10</span></div>
       </div>
-
       <div class="m3-word-badge">
         <div class="m3-word-img-wrap">
           <img id="m3TaskImg" alt="">
         </div>
         <div class="m3-word" id="m3Word">ТИНТ</div>
       </div>
-
       <div class="m3-stat right">
-        <div class="m3-lbl">Ходы</div>
-        <div class="m3-val" id="m3Moves">18</div>
+        <div class="m3-lbl">Попыток</div>
+        <div class="m3-val" id="m3Moves">0</div>
       </div>
     </div>
-
     <div class="scr-body scr-body-m3">
       <div class="m3-canvas-wrap">
         <canvas id="matchCanvas"></canvas>
         <div class="m3-floats" id="m3Floats"></div>
       </div>
     </div>
-
     <div class="scr-foot">
-      <div class="m3-tip">Меняй местами соседние плитки — собирай тройки</div>
+      <div class="m3-tip" id="m3Tip">Объединяй соседние продукты в ряды</div>
     </div>
   </section>
 
+  <!-- PRODUCT -->
   <section class="screen" id="scr-product">
     <div class="scr-body scr-body-product" id="productBody"></div>
   </section>
 
+  <!-- CABINET -->
   <section class="screen" id="scr-cab">
     <div class="scr-head">
       <div class="cab-header">
         <div class="cab-header-left">
           <div class="cab-eyebrow">Коллекция</div>
-          <div class="cab-title" id="cabTitle">0 / 14</div>
+          <div class="cab-title" id="cabTitle">0 <span>/ 14</span></div>
         </div>
         <div class="cab-header-right">
           <div class="cab-sub" id="cabSub">Собери все продукты</div>
@@ -133,7 +147,6 @@
         <div class="cab-progress-fill" id="cabProgressFill"></div>
       </div>
     </div>
-
     <div class="scr-body scr-body-cab">
       <div class="cab-bag">
         <div class="cab-bag-handle"></div>
@@ -148,7 +161,6 @@
         <div class="cab-bag-base"></div>
       </div>
     </div>
-
     <div class="scr-foot scr-foot-cab" id="cabFoot"></div>
   </section>
 
@@ -156,7 +168,7 @@
     <div class="transition-content">
       <div class="transition-label" id="transitionLabel">Слово отгадано</div>
       <div class="transition-word" id="transitionWord">ТИНТ</div>
-      <div class="transition-sub" id="transitionSub">Переходим к сбору троек</div>
+      <div class="transition-sub" id="transitionSub">Собираем продукты Climt</div>
     </div>
   </div>
 
@@ -167,6 +179,7 @@
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/onboarding.js"></script>
 <script src="js/home.js"></script>
 <script src="js/days.js"></script>
 <script src="js/hangman.js"></script>

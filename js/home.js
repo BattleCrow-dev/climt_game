@@ -18,10 +18,12 @@
     document.getElementById('cdDay').textContent = `День ${cur} из ${CFG.eventDays}`;
 
     const icon = document.getElementById('cdIcon');
-    icon.src = product.image;
-    icon.alt = product.name;
-    icon.onerror = () => { icon.style.display = 'none'; };
-    icon.onload = () => { icon.style.display = ''; };
+    if (product) {
+      icon.src = product.image;
+      icon.alt = product.name;
+      icon.onerror = () => { icon.style.display = 'none'; };
+      icon.onload = () => { icon.style.display = ''; };
+    }
 
     document.getElementById('cdProgress').style.width =
       (completed / CFG.eventDays * 100) + '%';
@@ -29,13 +31,14 @@
     startTick();
 
     const btn = document.getElementById('startBtn');
-    const next = State.getNextPlayableDay();
+    const playable = State.getPlayableDay();
+
     if (State.isEventComplete()) {
       btn.textContent = 'Открыть косметичку';
       btn.onclick = () => window.CLIMT_CABINET.render();
-    } else if (next) {
-      btn.textContent = `Продолжить день ${next}`;
-      btn.onclick = () => window.CLIMT_DAYS.startDay(next);
+    } else if (playable !== null && playable !== undefined) {
+      btn.textContent = `Продолжить день ${playable}`;
+      btn.onclick = () => window.CLIMT_DAYS.startDay(playable);
     } else {
       btn.textContent = 'Все доступные дни пройдены';
       btn.onclick = () => window.CLIMT_DAYS.render();
@@ -43,7 +46,6 @@
 
     document.getElementById('daysBtn').onclick = () => window.CLIMT_DAYS.render();
 
-    // ВАЖНО: переключаем экран и задаём onBack (на главной кнопка скрыта)
     UI.show('home', { onBack: () => window.CLIMT_HOME.render() });
   }
 

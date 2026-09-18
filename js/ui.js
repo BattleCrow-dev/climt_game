@@ -1,5 +1,6 @@
 (function () {
-  const SCREENS = ['home','days','hang','m3','product','cab'];
+  const SCREENS = ['home', 'days', 'hang', 'm3', 'product', 'cab', 'onboard'];
+  const FIT_SCREENS = ['home', 'days', 'hang', 'onboard'];
   let backHandler = null;
 
   function show(name, options) {
@@ -8,11 +9,12 @@
       const el = document.getElementById('scr-' + s);
       if (el) el.classList.toggle('active', s === name);
     });
+    document.body.classList.toggle('screen-fit', FIT_SCREENS.indexOf(name) !== -1);
     const backBtn = document.getElementById('backBtn');
-    backBtn.style.visibility = name === 'home' ? 'hidden' : 'visible';
+    backBtn.style.visibility = (name === 'home' || name === 'onboard') ? 'hidden' : 'visible';
     backHandler = options.onBack || null;
-    // Сброс скролла внутренних областей
     document.querySelectorAll('.scr-body').forEach(el => { el.scrollTop = 0; });
+    window.scrollTo(0, 0);
   }
 
   function getActiveScreen() {
@@ -78,7 +80,7 @@
 
     if (options.word) wordEl.textContent = options.word;
     labelEl.textContent = options.label || 'Слово отгадано';
-    subEl.textContent = options.sub || 'Переходим к сбору троек';
+    subEl.textContent = options.sub || 'Собираем сеты Climt';
 
     overlay.classList.add('active');
     setTimeout(() => {

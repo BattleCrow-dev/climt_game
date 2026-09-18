@@ -1,6 +1,5 @@
 (function () {
   const UI = window.CLIMT_UI;
-  const RUS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'.split('');
   let h = null;
 
   function init(product) {
@@ -9,8 +8,7 @@
       word: product.word,
       revealed: new Array(product.word.length).fill(false),
       used: {},
-      attempts: 6,
-      maxAttempts: 6,
+      attempts: 0,
       solved: false,
     };
 
@@ -27,11 +25,27 @@
   function renderVessel() {
     const v = document.getElementById('vessel');
     v.innerHTML = '';
-    const filled = h.maxAttempts - h.attempts;
-    for (let i = 0; i < h.maxAttempts; i++) {
+    const n = h.attempts;
+
+    if (n === 0) {
       const d = document.createElement('div');
-      d.className = 'drop' + (i < filled ? ' on' : '');
+      d.className = 'drop';
       v.appendChild(d);
+      return;
+    }
+
+    const MAX_DOTS = 12;
+    const shown = Math.min(n, MAX_DOTS);
+    for (let i = 0; i < shown; i++) {
+      const d = document.createElement('div');
+      d.className = 'drop on';
+      v.appendChild(d);
+    }
+    if (n > MAX_DOTS) {
+      const more = document.createElement('div');
+      more.className = 'drop-more';
+      more.textContent = '+' + (n - MAX_DOTS);
+      v.appendChild(more);
     }
   }
 
@@ -46,17 +60,29 @@
     });
   }
 
+  // Раскладка ЙЦУКЕН без Ё — три ряда
+  const KB_ROWS = [
+    'ЙЦУКЕНГШЩЗХЪ'.split(''),
+    'ФЫВАПРОЛДЖЭ'.split(''),
+    'ЯЧСМИТЬБЮ'.split(''),
+  ];
+
   function renderKeyboard() {
     const kb = document.getElementById('keyboard');
     kb.innerHTML = '';
-    RUS.forEach(L => {
-      const b = document.createElement('button');
-      b.className = 'key';
-      if (h.used[L] === 'hit') b.classList.add('hit', 'used');
-      if (h.used[L] === 'miss') b.classList.add('miss', 'used');
-      b.textContent = L;
-      b.onclick = () => guess(L);
-      kb.appendChild(b);
+    KB_ROWS.forEach(letters => {
+      const row = document.createElement('div');
+      row.className = 'kb-row';
+      letters.forEach(L => {
+        const b = document.createElement('button');
+        b.className = 'key';
+        if (h.used[L] === 'hit') b.classList.add('hit', 'used');
+        if (h.used[L] === 'miss') b.classList.add('miss', 'used');
+        b.textContent = L;
+        b.onclick = () => guess(L);
+        row.appendChild(b);
+      });
+      kb.appendChild(row);
     });
   }
 
@@ -70,23 +96,22 @@
       }
     }
     h.used[L] = hit ? 'hit' : 'miss';
-    if (!hit) {
-      h.attempts--;
-      if (h.attempts <= 0) forceReveal();
-    }
-    renderVessel(); renderWord(); renderKeyboard();
+    if (!hit) h.attempts++;
+
+    renderVessel();
+    renderWord();
+    renderKeyboard();
 
     if (h.revealed.every(Boolean)) {
       h.solved = true;
       if (window.CLIMT_STATE && window.CLIMT_STATE.markWordSolved) {
         window.CLIMT_STATE.markWordSolved(h.product.day);
       }
-
       setTimeout(() => {
         UI.transitionTo('m3', {
           word: h.word,
           label: 'Слово отгадано',
-          sub: 'Собираем тройки',
+          sub: 'Собираем продукты Climt',
           showOptions: { onBack: () => window.CLIMT_DAYS.render() },
         });
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -96,35 +121,23 @@
     }
   }
 
-  function forceReveal() {
-    for (let i = 0; i < h.word.length; i++) {
-      if (!h.revealed[i]) { h.revealed[i] = true; break; }
-    }
-    h.attempts = 2;
-    UI.toast('Открыта подсказка');
-  }
-
-  // ============================================================
-  // ADMIN API
-  // ============================================================
   function getState() { return h; }
 
   function solveAll() {
     if (!h || h.solved) return;
     for (let i = 0; i < h.word.length; i++) h.revealed[i] = true;
-    h.used = h.used || {};
-    renderVessel(); renderWord(); renderKeyboard();
+    renderVessel();
+    renderWord();
+    renderKeyboard();
     h.solved = true;
-
     if (window.CLIMT_STATE && window.CLIMT_STATE.markWordSolved) {
       window.CLIMT_STATE.markWordSolved(h.product.day);
     }
-
     setTimeout(() => {
       UI.transitionTo('m3', {
         word: h.word,
         label: 'Слово отгадано',
-        sub: 'Собираем тройки',
+        sub: 'Собираем продукты Climt',
         showOptions: { onBack: () => window.CLIMT_DAYS.render() },
       });
       requestAnimationFrame(() => requestAnimationFrame(() => {

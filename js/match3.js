@@ -1,6 +1,7 @@
 /**
  * Match-3 с фотографиями товаров Climt.
  * Свайп и тап-тап. Свойства x/y/scale/alpha анимируются независимо.
+ * Счётчик попыток идёт вверх, лимита нет.
  */
 (function () {
   const UI = window.CLIMT_UI;
@@ -26,6 +27,14 @@
     swapPeak: 1.04,
     clearUpPeak: 1.06,
     clearOutEnd: 0.15,
+  };
+
+  // Палитра подложек для не-целевых типов (тип 0 – целевой)
+  const TILE_TINTS = {
+    1: { bg1: '#F0F4F9', bg2: '#E3EBF4', stroke: '#8AA8C8' },
+    2: { bg1: '#F0F6F0', bg2: '#E2EFE2', stroke: '#8FB88F' },
+    3: { bg1: '#F9F0F4', bg2: '#F2E2EA', stroke: '#D8A8C0' },
+    4: { bg1: '#F3F0F8', bg2: '#E8E2F2', stroke: '#A898C8' },
   };
 
   const imageCache = {};
@@ -96,7 +105,7 @@
       canvas, ctx, size, cell, N,
       grid: [],
       target: product.m3.target,
-      moves: product.m3.moves,
+      moves: 0,
       score: 0,
       selected: null,
       selectPhase: 0,
@@ -117,16 +126,25 @@
       });
     });
 
-        const taskImg = document.getElementById('m3TaskImg');
+    const taskImg = document.getElementById('m3TaskImg');
     if (taskImg) {
       taskImg.src = product.image;
       taskImg.alt = product.name;
     }
     const wordEl = document.getElementById('m3Word');
     if (wordEl) wordEl.textContent = product.word;
+
+    const tipEl = document.getElementById('m3Tip');
+    if (tipEl) {
+      const units = product.matchUnits || ['штука','штуки','штук'];
+      const unitWord = UI.plural(product.m3.target, units);
+      const ofWord = product.matchOf || '';
+      tipEl.textContent = `Собери ${product.m3.target} ${unitWord} ${ofWord} – объединяй соседние плитки`;
+    }
+
     document.getElementById('m3Score').textContent = '0';
     document.getElementById('m3Target').textContent = product.m3.target;
-    document.getElementById('m3Moves').textContent = product.m3.moves;
+    document.getElementById('m3Moves').textContent = '0';
 
     if (!bound) { bindInput(); bound = true; }
     if (rafId) cancelAnimationFrame(rafId);
@@ -158,7 +176,7 @@
       type, r, c,
       x: c, y: r,
       scale: 1, alpha: 1,
-      anim: null, // { x: {...}, y: {...}, scale: {...}, alpha: {...} }
+      anim: null,
     };
   }
 
@@ -304,7 +322,6 @@
       const a = tile.anim[key];
       let k = (now - a.start) / a.duration;
       if (k >= 1) {
-        // ЖЁСТКАЯ фиксация в конечном значении
         tile[key] = a.to;
         delete tile.anim[key];
       } else {
@@ -323,24 +340,21 @@
     m3.busy = true;
     m3.phase = 'swapping';
 
-    // Один tween — координаты + лёгкий scale
     tween(a, { x: b.x, y: b.y, scale: SCALE.swapPeak }, ANIM.swap);
     tween(b, { x: a.x, y: a.y, scale: SCALE.swapPeak }, ANIM.swap);
 
-    // Параллельно (не перезаписывая x/y!) сбрасываем scale
     setTimeout(() => {
       if (!m3) return;
       tween(a, { scale: 1 }, ANIM.swap * 0.5);
       tween(b, { scale: 1 }, ANIM.swap * 0.5);
     }, ANIM.swap * 0.55);
 
-    // Меняем логические места в сетке
     swapInGrid(a, b);
 
     setTimeout(() => {
       if (!m3) return;
       if (findMatches().length === 0) {
-        // Откат
+        // Откат — плитки возвращаются на исходные места
         swapInGrid(a, b);
         tween(a, { x: a.c, y: a.r, scale: 1 }, ANIM.swapBack);
         tween(b, { x: b.c, y: b.r, scale: 1 }, ANIM.swapBack);
@@ -349,11 +363,11 @@
           snapTile(a); snapTile(b);
           m3.busy = false;
           m3.phase = 'idle';
-          UI.toast('Нет совпадений');
         }, ANIM.swapBack + 20);
         return;
       }
-      m3.moves--;
+      // Валидный обмен — увеличиваем счётчик попыток
+      m3.moves++;
       updateHeader();
       resolveMatches();
     }, ANIM.swap + 30);
@@ -398,7 +412,6 @@
     const { ctx, size, cell, grid } = m3;
     ctx.clearRect(0, 0, size, size);
 
-    // CLIP по границам поля
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, size, size);
@@ -419,12 +432,12 @@
       ctx.scale(pulse, pulse);
       ctx.translate(-cx, -cy);
 
-      ctx.strokeStyle = 'rgba(184,146,74,.35)';
+      ctx.strokeStyle = 'rgba(168,136,80,.35)';
       ctx.lineWidth = 6;
       roundRect(ctx, c*cell + 5, r*cell + 5, cell - 10, cell - 10, cell * 0.18);
       ctx.stroke();
 
-      ctx.strokeStyle = '#1A1A1A';
+      ctx.strokeStyle = '#0A0A0A';
       ctx.lineWidth = 2;
       roundRect(ctx, c*cell + 4, r*cell + 4, cell - 8, cell - 8, cell * 0.18);
       ctx.stroke();
@@ -441,7 +454,6 @@
     const sz = cell - pad * 2;
     const isTarget = tile.type === TARGET_TYPE;
 
-    // Экранный центр
     const cx = tile.x * cell + cell / 2;
     const cy = tile.y * cell + cell / 2;
 
@@ -473,11 +485,15 @@
       ctx.shadowOffsetY = 0;
 
       ctx.strokeStyle = '#B8924A';
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, x + pad + 0.75, y + pad + 0.75, sz - 1.5, sz - 1.5, radius);
+      ctx.lineWidth = 2;
+      roundRect(ctx, x + pad + 1, y + pad + 1, sz - 2, sz - 2, radius);
       ctx.stroke();
     } else {
-      ctx.fillStyle = '#FFFFFF';
+      const tint = TILE_TINTS[tile.type] || { bg1: '#FFFFFF', bg2: '#F5F5F5', stroke: '#E5E5E1' };
+      const grad = ctx.createLinearGradient(x, y, x + cell, y + cell);
+      grad.addColorStop(0, tint.bg1);
+      grad.addColorStop(1, tint.bg2);
+      ctx.fillStyle = grad;
       roundRect(ctx, x + pad, y + pad, sz, sz, radius);
       ctx.fill();
 
@@ -485,10 +501,12 @@
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
 
-      ctx.strokeStyle = '#E5E5E1';
+      ctx.globalAlpha = tile.alpha * 0.6;
+      ctx.strokeStyle = tint.stroke;
       ctx.lineWidth = 1;
       roundRect(ctx, x + pad + 0.5, y + pad + 0.5, sz - 1, sz - 1, radius);
       ctx.stroke();
+      ctx.globalAlpha = tile.alpha;
     }
 
     const iconSize = sz * (isTarget ? 0.72 : 0.64);
@@ -604,13 +622,11 @@
       updateHeader();
     }
 
-    // Фаза 1: лёгкое сжатие
     matches.forEach(({ r, c }) => {
       const t = m3.grid[r][c];
       if (t) tween(t, { scale: SCALE.clearUpPeak }, ANIM.clearUp);
     });
 
-    // Фаза 2: уменьшение + прозрачность
     setTimeout(() => {
       if (!m3) return;
       matches.forEach(({ r, c }) => {
@@ -619,7 +635,6 @@
       });
     }, ANIM.clearUp);
 
-    // Фаза 3: удаление + гравитация
     setTimeout(() => {
       if (!m3) return;
       matches.forEach(({ r, c }) => {
@@ -659,7 +674,6 @@
       for (let r = write; r >= 0; r--) {
         const type = Math.floor(Math.random() * TILE_TYPES);
         const t = makeTile(type, r, c);
-        // Стартует ровно над полем на своей колонке
         t.x = c;
         t.y = r - (write + 1);
         t.alpha = 1;
@@ -681,32 +695,26 @@
     if (!m3) return;
     if (m3.score >= m3.target) {
       setTimeout(finish, 400);
-    } else if (m3.moves <= 0) {
-      m3.moves = 6;
-      updateHeader();
-      UI.toast('Ещё 6 ходов — доведи до конца');
     }
+    // Ограничения по ходам нет — игра идёт до победы
   }
 
   function finish() {
     if (!m3) return;
     const product = m3.product;
-    const discount = CFG.discountPerDay;
-    const code = `CLIMT-${product.word}-${discount}`;
-    State.completeDay(product.day, code);
     cancelAnimationFrame(rafId);
     m3 = null;
 
     UI.transitionTo('product', {
       word: '✓',
       label: 'Собрано',
-      sub: 'Открываем карточку товара',
+      sub: 'Открываем твой промокод',
       showOptions: { onBack: () => window.CLIMT_DAYS.render() },
     });
     setTimeout(() => {
       window.CLIMT_PRODUCT_VIEW.render(product, {
         mode: 'reward',
-        promo: code,
+        pendingReward: true,
         onBack: () => window.CLIMT_DAYS.render(),
       });
     }, 700);

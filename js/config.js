@@ -3,5 +3,9 @@ window.CLIMT_CONFIG = {
   finalRewardCode: 'CLIMT-FINAL-30',
   finalRewardWindowDays: 7,
   discountPerDay: 10,
-  storageKey: 'climt_play_v4',
+  promoDurationDays: 3,
+  catchUpWindowDays: 3,
+  storageKey: 'climt_play_v5',
+  onboardingKey: 'climt_onboard_v2',
+  adminPassword: 'admin',
 };
