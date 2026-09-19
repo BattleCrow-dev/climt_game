@@ -9,7 +9,7 @@
       promoExpiry: {},   // { day: timestamp }
       wordSolved: {},
       marketplace: null, // 'wb' | 'ozon'
-      startDate: new Date().toISOString(),
+      startDate: "2026-09-16T16:59:20.367Z",
       finalRewardUnlockedAt: null,
     };
   }
